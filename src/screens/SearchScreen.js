@@ -11,6 +11,15 @@ import {
 import { searchStocks } from '../api/stockAPI';
 import { useNavigation } from '@react-navigation/native';
 
+// ✅ Debounce function
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -18,21 +27,22 @@ export default function SearchScreen() {
 
   const navigation = useNavigation();
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
+  const debouncedSearch = debounce(async (text) => {
     setLoading(true);
-    const res = await searchStocks(query);
+    const res = await searchStocks(text);
     setResults(res);
     setLoading(false);
-  };
+  }, 500);
 
   return (
     <View style={styles.container}>
       <TextInput
         placeholder="Search stocks or ETFs..."
         value={query}
-        onChangeText={setQuery}
-        onSubmitEditing={handleSearch}
+        onChangeText={(text) => {
+          setQuery(text);
+          debouncedSearch(text);
+        }}
         style={styles.input}
       />
 
