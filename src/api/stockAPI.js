@@ -2,10 +2,10 @@ import axios from 'axios';
 
 const BASE_URL = 'https://www.alphavantage.co/query';
 const KEYS = {
-  DAILY: '04BP0FF6PUWG61RH',
-  SEARCH: 'FRENRIBTPXSUR6ZQ',
-  OVERVIEW: '91F2CB6SPM46UP7F',
-  INTRADAY: 'HET768QJ7P8UDH9W',
+  DAILY: 'XCX6Y5FP9GMZZYIC',
+  SEARCH: 'GRHHWUO96BLZGKDD',
+  OVERVIEW: 'E8SXZUES4BQ2G9LA',
+  INTRADAY: 'Z6M9Y7S7QCA9PSZ0',
 };
 
 const fetchFromAlpha = async (params, key) => {
