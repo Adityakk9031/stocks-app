@@ -10,7 +10,7 @@ const KEYS = {
   NEWS: 'PXTF1LLR2N2MPINW',
 };
 
-// ✅ Generic fetch + cache with expiry
+
 const getWithCache = async (key, fetcher, expiryMs) => {
   const raw = await AsyncStorage.getItem(key);
   if (raw) {
@@ -32,7 +32,7 @@ const getWithCache = async (key, fetcher, expiryMs) => {
   return value;
 };
 
-// ✅ Wrapper for Alpha Vantage API call
+
 const fetchFromAlpha = async (params, key) => {
   try {
     const response = await axios.get(BASE_URL, {
@@ -45,7 +45,7 @@ const fetchFromAlpha = async (params, key) => {
   }
 };
 
-// ✅ Cache Overview for 24h
+
 export const getCompanyOverview = async (symbol) =>
   await getWithCache(
     `overview-${symbol}`,
@@ -53,7 +53,7 @@ export const getCompanyOverview = async (symbol) =>
     24 * 60 * 60 * 1000
   );
 
-// ✅ Cache Intraday for 5 min
+
 export const getStockIntraday = async (symbol, interval = '5min') =>
   await getWithCache(
     `intraday-${symbol}`,
@@ -76,7 +76,7 @@ export const getStockIntraday = async (symbol, interval = '5min') =>
     5 * 60 * 1000
   );
 
-// ✅ Search stocks by keyword
+
 export const searchStocks = async (keyword) => {
   const res = await fetchFromAlpha({
     function: 'SYMBOL_SEARCH',
@@ -85,7 +85,7 @@ export const searchStocks = async (keyword) => {
   return res?.bestMatches || [];
 };
 
-// ✅ Get market status (if needed)
+
 export const getMarketStatus = async () => {
   const res = await fetchFromAlpha({
     function: 'MARKET_STATUS',
@@ -93,7 +93,7 @@ export const getMarketStatus = async () => {
   return res;
 };
 
-// ✅ Get latest news with sentiment for a specific stock (cache for 30 min)
+
 export const getNewsSentiment = async (symbol) =>
   await getWithCache(
     `news-${symbol}`,
@@ -111,8 +111,8 @@ export const getNewsSentiment = async (symbol) =>
   );
 
 
-// ✅ Top movers with static meta info (supports Option 3)
-// ✅ Top gainers/losers using new efficient API (cached for 30 min)
+
+
 export const fetchTopMovers = async () =>
   await getWithCache(
     'top-movers',
