@@ -72,13 +72,11 @@ Edit
 
 ## ⚙️ Setup & Run Locally
 
-1. **Clone the repository:**
-
+### Clone the repository:
 ```bash
 git clone https://github.com/Adityakk9031/stock-app.git
 cd stock-app
 Install dependencies:
-
 bash
 Copy
 Edit
@@ -86,11 +84,9 @@ npm install
 # or
 yarn
 Setup .env (Optional):
-
 If you're using a .env to store Alpha Vantage API keys.
 
 Run the app:
-
 bash
 Copy
 Edit
@@ -133,4 +129,18 @@ News sentiment and top movers are refreshed every 30 mins.
 📩 Contact
 Made with ❤️ by Aditya Kumar Singh
 📧 adityakumarsingh9031@gmail.com
+
+yaml
+Copy
+Edit
+
+---
+
+
+
+
+
+
+
+
 
