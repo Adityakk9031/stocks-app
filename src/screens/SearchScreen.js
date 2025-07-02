@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { colors } from '../constants/colors';
 
-// ✅ Debounce function
 function debounce(fn, delay) {
   let timer;
   return (...args) => {
@@ -32,8 +31,13 @@ export default function SearchScreen() {
 
   const debouncedSearch = debounce(async (text) => {
     setLoading(true);
-    const res = await searchStocks(text);
-    setResults(res);
+    try {
+      const res = await searchStocks(text);
+      setResults(res);
+    } catch (err) {
+      console.error('Search error', err);
+      setResults([]);
+    }
     setLoading(false);
   }, 500);
 
@@ -59,6 +63,8 @@ export default function SearchScreen() {
 
       {loading ? (
         <ActivityIndicator size="large" color={colors[theme].primary} />
+      ) : results.length === 0 && query ? (
+        <Text style={{ color: colors[theme].text, marginTop: 16 }}>No results found.</Text>
       ) : (
         <FlatList
           data={results}

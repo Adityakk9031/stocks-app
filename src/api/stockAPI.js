@@ -3,10 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = 'https://www.alphavantage.co/query';
 const KEYS = {
-  DAILY: ' LI4GLJ27OXA86IIA',
-  SEARCH: '4NP64A36IH47DNSS',
-  OVERVIEW: 'A7KON2J9J17BDBRK',
-  INTRADAY: 'CTCC3YZQJQ6B2WOA',
+  DAILY: '3GSEVEUUA9RWJTFV',
+  SEARCH: 'YZ9H111SQS42HE0X',
+  OVERVIEW: 'DBRHD6JBMPN2SROL',
+  INTRADAY: '44QAXO769SUI9PVU',
 };
 
 // ✅ Generic fetch + cache with expiry
@@ -93,58 +93,30 @@ export const getMarketStatus = async () => {
 };
 
 // ✅ Top movers with static meta info (supports Option 3)
-export const fetchTopMovers = async () => {
-  const symbols = [
-    'AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN',
-    'NVDA', 'META', 'NFLX', 'ORCL', 'INTC',
-    'ADBE', 'CRM', 'PEP', 'KO', 'WMT',
-    'NKE', 'PYPL', 'T', 'BABA', 'DIS'
-  ];
+// ✅ Top gainers/losers using new efficient API (cached for 30 min)
+export const fetchTopMovers = async () =>
+  await getWithCache(
+    'top-movers',
+    async () => {
+      const res = await fetchFromAlpha(
+        { function: 'TOP_GAINERS_LOSERS' },
+        KEYS.DAILY
+      );
 
-  const results = [];
+      const mapData = (list) =>
+        list.map((item) => ({
+          symbol: item.ticker,
+          price: parseFloat(item.price).toFixed(2),
+          change: parseFloat(item.change_percentage).toFixed(2),
+        }));
 
-  for (let i = 0; i < symbols.length; i++) {
-    const symbol = symbols[i];
+      return {
+        topGainers: mapData(res.top_gainers.slice(0, 4)),
+        topLosers: mapData(res.top_losers.slice(0, 4)),
+        allGainers: mapData(res.top_gainers),
+        allLosers: mapData(res.top_losers),
+      };
+    },
+    30 * 60 * 1000 // ⏱️ 30 minutes
+  );
 
-    // Price Change %
-    const res = await fetchFromAlpha({
-      function: 'TIME_SERIES_DAILY',
-      symbol,
-      outputsize: 'compact',
-    }, KEYS.DAILY);
-
-    const timeSeries = res?.['Time Series (Daily)'];
-    if (!timeSeries) continue;
-
-    const dates = Object.keys(timeSeries);
-    const latest = parseFloat(timeSeries[dates[0]]['4. close']);
-    const prev = parseFloat(timeSeries[dates[1]]['4. close']);
-    const change = ((latest - prev) / prev) * 100;
-
-    // ✅ Meta info
-    const overview = await getCompanyOverview(symbol);
-
-    results.push({
-      symbol,
-      price: latest.toFixed(2),
-      change: change.toFixed(2),
-      name: overview?.Name || '', // fallback empty
-      sector: overview?.Sector || '',
-    });
-
-    // ✅ Respect Alpha Vantage limit (5 calls/min)
-    if ((i + 1) % 5 === 0) {
-      await new Promise((r) => setTimeout(r, 65000));
-    }
-  }
-
-  const sortedGainers = [...results].sort((a, b) => b.change - a.change);
-  const sortedLosers = [...results].sort((a, b) => a.change - b.change);
-
-  return {
-    topGainers: sortedGainers.slice(0, 4),
-    topLosers: sortedLosers.slice(0, 4),
-    allGainers: sortedGainers,
-    allLosers: sortedLosers,
-  };
-};

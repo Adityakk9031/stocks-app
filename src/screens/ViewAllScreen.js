@@ -23,48 +23,52 @@ export default function ViewAllScreen() {
         {type === 'gainers' ? 'All Gainers' : 'All Losers'}
       </Text>
 
-      <FlatList
-        data={paginatedData}
-        keyExtractor={(item) => item.symbol}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.card,
-              {
-                backgroundColor: type === 'gainers'
-                  ? colors[theme].success
-                  : colors[theme].danger,
-              },
-            ]}
-            onPress={() => navigation.navigate('ProductScreen', { symbol: item.symbol })}
-          >
-            <Text style={[styles.symbol, { color: colors[theme].text }]}>{item.symbol}</Text>
-            <Text style={[styles.name, { color: colors[theme].text }]}>{item.name}</Text>
-            <Text style={[styles.sector, { color: colors[theme].text }]}>{item.sector}</Text>
-            <Text style={[styles.price, { color: colors[theme].text }]}>${item.price}</Text>
-            <Text style={[styles.percent, { color: colors[theme].text }]}>
-              {type === 'gainers' ? '+' : '-'}
-              {Math.abs(item.change)}%
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
+      {passedData.length === 0 ? (
+        <Text style={{ color: colors[theme].text, marginTop: 16 }}>No data to display.</Text>
+      ) : (
+        <>
+          <FlatList
+            data={paginatedData}
+            keyExtractor={(item) => item.symbol}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: type === 'gainers'
+                      ? colors[theme].success
+                      : colors[theme].danger,
+                  },
+                ]}
+                onPress={() => navigation.navigate('ProductScreen', { symbol: item.symbol })}
+              >
+                <Text style={[styles.symbol, { color: colors[theme].text }]}>{item.symbol}</Text>
+                <Text style={[styles.price, { color: colors[theme].text }]}>${item.price}</Text>
+                <Text style={[styles.percent, { color: colors[theme].text }]}>
+                  {type === 'gainers' ? '+' : '-'}
+                  {Math.abs(item.change)}%
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
 
-      <View style={styles.pagination}>
-        <Button
-          title="Previous"
-          onPress={() => setPage((p) => Math.max(p - 1, 1))}
-          disabled={page === 1}
-          color={colors[theme].primary}
-        />
-        <Text style={{ color: colors[theme].text }}>{`Page ${page}`}</Text>
-        <Button
-          title="Next"
-          onPress={() => setPage((p) => (p * PAGE_SIZE < passedData.length ? p + 1 : p))}
-          disabled={page * PAGE_SIZE >= passedData.length}
-          color={colors[theme].primary}
-        />
-      </View>
+          <View style={styles.pagination}>
+            <Button
+              title="Previous"
+              onPress={() => setPage((p) => Math.max(p - 1, 1))}
+              disabled={page === 1}
+              color={colors[theme].primary}
+            />
+            <Text style={{ color: colors[theme].text }}>{`Page ${page}`}</Text>
+            <Button
+              title="Next"
+              onPress={() => setPage((p) => (p * PAGE_SIZE < passedData.length ? p + 1 : p))}
+              disabled={page * PAGE_SIZE >= passedData.length}
+              color={colors[theme].primary}
+            />
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -89,15 +93,6 @@ const styles = StyleSheet.create({
   symbol: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  name: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    marginTop: 2,
-  },
-  sector: {
-    fontSize: 12,
-    marginTop: 1,
   },
   price: {
     fontSize: 16,

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { getFolders } from '../storage/watchlistStorage'; // ✅ Corrected path
+import { getFolders } from '../storage/watchlistStorage';
 import { useTheme } from '../context/ThemeContext';
 import { colors } from '../constants/colors';
 
@@ -11,8 +11,13 @@ export default function WatchlistScreen() {
   const { theme } = useTheme();
 
   const loadFolders = async () => {
-    const all = await getFolders();
-    setFolders(all);
+    try {
+      const all = await getFolders();
+      setFolders(all);
+    } catch (e) {
+      console.error('Failed to load folders', e);
+      setFolders([]);
+    }
   };
 
   useFocusEffect(
