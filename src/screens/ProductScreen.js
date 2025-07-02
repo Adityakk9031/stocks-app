@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
-import { getCompanyOverview, getStockIntraday } from '../api/stockAPI';
+import { getCompanyOverview, getStockIntraday, getNewsSentiment } from '../api/stockAPI';
 import WatchlistModal from '../components/WatchlistModal';
 import { getFolders, getFolderItems, removeFromFolder } from '../storage/watchlistStorage';
 import { useTheme } from '../context/ThemeContext';
@@ -19,6 +19,7 @@ export default function ProductScreen({ route }) {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [foldersContainingStock, setFoldersContainingStock] = useState([]);
+  const [news, setNews] = useState([]);
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -26,8 +27,11 @@ export default function ProductScreen({ route }) {
       setLoading(true);
       const company = await getCompanyOverview(symbol);
       const intraday = await getStockIntraday(symbol);
+      const newsData = await getNewsSentiment(symbol);
+
       setOverview(company);
       setGraphData(intraday);
+      setNews(newsData?.feed || []);
       setLoading(false);
     };
 
@@ -133,6 +137,29 @@ export default function ProductScreen({ route }) {
         style={{ marginVertical: 8, borderRadius: 16 }}
       />
 
+      {news.length > 0 && (
+        <>
+          <Text style={[styles.chartLabel, { color: colors[theme].text }]}>Latest News</Text>
+          {news.map((item, index) => (
+            <View key={index} style={[styles.newsCard, { backgroundColor: colors[theme].card }]}>
+              <Text style={[styles.newsTitle, { color: colors[theme].text }]}>{item.title}</Text>
+              <Text style={[styles.newsMeta, { color: colors[theme].text }]}>
+                {item.source} • {item.overall_sentiment_label}
+              </Text>
+              <Text style={[styles.newsTime, { color: colors[theme].text }]}>
+                {new Date(
+                  item.time_published.slice(0, 4) + '-' +
+                  item.time_published.slice(4, 6) + '-' +
+                  item.time_published.slice(6, 8) + 'T' +
+                  item.time_published.slice(9, 11) + ':' +
+                  item.time_published.slice(11, 13)
+                ).toLocaleString()}
+              </Text>
+            </View>
+          ))}
+        </>
+      )}
+
       <WatchlistModal
         visible={modalVisible}
         onClose={handleModalClose}
@@ -159,4 +186,23 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   watchlistButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  newsCard: {
+    padding: 12,
+    marginVertical: 6,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  newsTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  newsMeta: {
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  newsTime: {
+    fontSize: 12,
+    marginTop: 2,
+  },
 });

@@ -3,10 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = 'https://www.alphavantage.co/query';
 const KEYS = {
-  DAILY: '3GSEVEUUA9RWJTFV',
-  SEARCH: 'YZ9H111SQS42HE0X',
-  OVERVIEW: 'DBRHD6JBMPN2SROL',
-  INTRADAY: '44QAXO769SUI9PVU',
+  DAILY: '7IA1XEWDRNBBK686',
+  SEARCH: 'R7WHJZQ93IP3FS7D',
+  OVERVIEW: '8T4Q6CXDUZZ6JGTC',
+  INTRADAY: 'W4OLXINN7YBI3M65',
+  NEWS: 'PXTF1LLR2N2MPINW',
 };
 
 // ✅ Generic fetch + cache with expiry
@@ -91,6 +92,24 @@ export const getMarketStatus = async () => {
   }, KEYS.SEARCH);
   return res;
 };
+
+// ✅ Get latest news with sentiment for a specific stock (cache for 30 min)
+export const getNewsSentiment = async (symbol) =>
+  await getWithCache(
+    `news-${symbol}`,
+    () =>
+      fetchFromAlpha(
+        {
+          function: 'NEWS_SENTIMENT',
+          tickers: symbol,
+          sort: 'LATEST',
+          limit: 5,
+        },
+        KEYS.NEWS // or you can use a dedicated NEWS key if you registered one
+      ),
+    30 * 60 * 1000 // 30 min cache
+  );
+
 
 // ✅ Top movers with static meta info (supports Option 3)
 // ✅ Top gainers/losers using new efficient API (cached for 30 min)

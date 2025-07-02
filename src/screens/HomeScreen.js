@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, FlatList, ActivityIndicator, StyleSheet, TouchableOpacity, Switch,
 } from 'react-native';
-import { fetchTopMovers } from '../api/stockAPI';
+import { fetchTopMovers, getMarketStatus } from '../api/stockAPI';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { colors } from '../constants/colors';
@@ -24,6 +24,7 @@ export default function HomeScreen() {
   const [allGainers, setAllGainers] = useState([]);
   const [allLosers, setAllLosers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [marketStatus, setMarketStatus] = useState(null);
 
   const navigation = useNavigation();
   const { theme, toggleTheme } = useTheme();
@@ -37,8 +38,18 @@ export default function HomeScreen() {
         setLosers(topLosers);
         setAllGainers(allGainers);
         setAllLosers(allLosers);
+
+        const market = await getMarketStatus();
+        if (market?.markets) {
+          const primaryMarket = market.markets.find(
+            (m) =>
+              m.market_type.toLowerCase() === 'equity' &&
+              m.region.toLowerCase() === 'united states'
+          );
+          setMarketStatus(primaryMarket?.current_status || 'Unknown');
+        }
       } catch (err) {
-        console.error('Error loading movers:', err.message);
+        console.error('Error loading data:', err.message);
       }
       setLoading(false);
     };
@@ -60,6 +71,12 @@ export default function HomeScreen() {
         <Text style={{ color: colors[theme].text, marginRight: 8 }}>Dark Mode</Text>
         <Switch value={theme === 'dark'} onValueChange={toggleTheme} />
       </View>
+
+      {marketStatus && (
+        <Text style={[styles.marketStatus, { color: marketStatus === 'open' ? 'green' : 'red' }]}>
+          Market is currently: {marketStatus.toUpperCase()}
+        </Text>
+      )}
 
       <View style={styles.rowBetween}>
         <Text style={[styles.header, { color: colors[theme].text }]}>Top Gainers</Text>
@@ -158,5 +175,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  marketStatus: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
   },
 });
