@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, FlatList, TextInput, Pressable, StyleSheet } from 'react-native';
-import { addToFolder, getFolders } from '../storage/watchlistStorage'; // ✅ Corrected path
+import { addToFolder, getFolders } from '../storage/watchlistStorage'; 
 
 export default function WatchlistModal({ visible, onClose, stock }) {
   const [folders, setFolders] = useState([]);
