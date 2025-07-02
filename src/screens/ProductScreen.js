@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { getCompanyOverview, getStockIntraday } from '../api/stockAPI';
 import WatchlistModal from '../components/WatchlistModal';
 import { getFolders, getFolderItems, removeFromFolder } from '../storage/watchlistStorage';
+import { useTheme } from '../context/ThemeContext';
+import { colors } from '../constants/colors';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -17,6 +19,7 @@ export default function ProductScreen({ route }) {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [foldersContainingStock, setFoldersContainingStock] = useState([]);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const loadDetails = async () => {
@@ -53,14 +56,10 @@ export default function ProductScreen({ route }) {
     setFoldersContainingStock([]);
   };
 
-  const handleAddToWatchlist = () => {
-    setModalVisible(true);
-  };
+  const handleAddToWatchlist = () => setModalVisible(true);
 
   const handleModalClose = async () => {
     setModalVisible(false);
-
-    // Refresh folders after modal closes
     const allFolders = await getFolders();
     const result = [];
 
@@ -76,9 +75,9 @@ export default function ProductScreen({ route }) {
 
   if (loading || !overview || graphData.length === 0) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Loading stock details...</Text>
+      <View style={[styles.centered, { backgroundColor: colors[theme].background }]}>
+        <ActivityIndicator size="large" color={colors[theme].primary} />
+        <Text style={{ color: colors[theme].text }}>Loading stock details...</Text>
       </View>
     );
   }
@@ -88,16 +87,18 @@ export default function ProductScreen({ route }) {
   const isInAnyFolder = foldersContainingStock.length > 0;
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>{overview.Name}</Text>
-      <Text style={styles.symbol}>{overview.Symbol}</Text>
-      <Text style={styles.industry}>{overview.Industry}</Text>
-      <Text style={styles.description}>{overview.Description}</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors[theme].background }]}>
+      <Text style={[styles.title, { color: colors[theme].text }]}>{overview.Name}</Text>
+      <Text style={[styles.symbol, { color: colors[theme].text }]}>{overview.Symbol}</Text>
+      <Text style={[styles.industry, { color: colors[theme].text }]}>{overview.Industry}</Text>
+      <Text style={[styles.description, { color: colors[theme].text }]}>{overview.Description}</Text>
 
       <TouchableOpacity
         style={[
           styles.watchlistButton,
-          { backgroundColor: isInAnyFolder ? 'red' : '#007AFF' },
+          {
+            backgroundColor: isInAnyFolder ? colors[theme].danger : colors[theme].primary,
+          },
         ]}
         onPress={isInAnyFolder ? handleRemoveFromAll : handleAddToWatchlist}
       >
@@ -112,21 +113,21 @@ export default function ProductScreen({ route }) {
         </Text>
       </TouchableOpacity>
 
-      <Text style={styles.chartLabel}>Price Chart (Intraday)</Text>
+      <Text style={[styles.chartLabel, { color: colors[theme].text }]}>Price Chart (Intraday)</Text>
       <LineChart
         data={{
           labels,
-          datasets: [{ data: prices, color: () => '#007AFF', strokeWidth: 2 }],
+          datasets: [{ data: prices, color: () => colors[theme].primary, strokeWidth: 2 }],
         }}
         width={screenWidth - 32}
         height={220}
         chartConfig={{
-          backgroundColor: '#ffffff',
-          backgroundGradientFrom: '#ffffff',
-          backgroundGradientTo: '#ffffff',
+          backgroundColor: colors[theme].background,
+          backgroundGradientFrom: colors[theme].background,
+          backgroundGradientTo: colors[theme].background,
           decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-          labelColor: () => '#555',
+          color: () => colors[theme].primary,
+          labelColor: () => colors[theme].text,
         }}
         bezier
         style={{ marginVertical: 8, borderRadius: 16 }}
@@ -142,12 +143,12 @@ export default function ProductScreen({ route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 16 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 4 },
-  symbol: { fontSize: 18, color: '#888', marginBottom: 4 },
+  symbol: { fontSize: 18, marginBottom: 4 },
   industry: { fontSize: 16, fontStyle: 'italic', marginBottom: 8 },
-  description: { fontSize: 14, color: '#444', marginBottom: 16 },
+  description: { fontSize: 14, marginBottom: 16 },
   chartLabel: { fontSize: 16, fontWeight: '600', marginTop: 12, marginBottom: 6 },
   watchlistButton: {
     flexDirection: 'row',

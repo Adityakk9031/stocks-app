@@ -3,10 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = 'https://www.alphavantage.co/query';
 const KEYS = {
-  DAILY: 'Q9K1JHN4CLJZO673',
-  SEARCH: '89SRGNX1DXKAKXL3',
-  OVERVIEW: '9H4JPBLNC20DDC7C',
-  INTRADAY: 'M0BEJP6YM6OVGU7N',
+  DAILY: '18H1U1HDOG4U0M6D',
+  SEARCH: 'P7W85FBZC2321PBH',
+  OVERVIEW: '7NYYEC62AJFRX4D2',
+  INTRADAY: '4XMH1HNQUUUTEKOC',
 };
 
 // ✅ AsyncStorage-based caching with expiry

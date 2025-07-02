@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { searchStocks } from '../api/stockAPI';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../context/ThemeContext';
+import { colors } from '../constants/colors';
 
 // ✅ Debounce function
 function debounce(fn, delay) {
@@ -26,6 +28,7 @@ export default function SearchScreen() {
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
   const debouncedSearch = debounce(async (text) => {
     setLoading(true);
@@ -35,34 +38,46 @@ export default function SearchScreen() {
   }, 500);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors[theme].background }]}>
       <TextInput
         placeholder="Search stocks or ETFs..."
+        placeholderTextColor={colors[theme].text + '99'}
         value={query}
         onChangeText={(text) => {
           setQuery(text);
           debouncedSearch(text);
         }}
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            borderColor: colors[theme].card,
+            color: colors[theme].text,
+            backgroundColor: colors[theme].card,
+          },
+        ]}
       />
 
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={colors[theme].primary} />
       ) : (
         <FlatList
           data={results}
           keyExtractor={(item) => item['1. symbol']}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.result}
+              style={[styles.result, { borderBottomColor: colors[theme].card }]}
               onPress={() =>
                 navigation.navigate('ProductScreen', {
                   symbol: item['1. symbol'],
                 })
               }
             >
-              <Text style={styles.symbol}>{item['1. symbol']}</Text>
-              <Text style={styles.name}>{item['2. name']}</Text>
+              <Text style={[styles.symbol, { color: colors[theme].text }]}>
+                {item['1. symbol']}
+              </Text>
+              <Text style={[styles.name, { color: colors[theme].text }]}>
+                {item['2. name']}
+              </Text>
             </TouchableOpacity>
           )}
         />
@@ -75,11 +90,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
   },
   input: {
     padding: 12,
-    borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 10,
     marginBottom: 12,
@@ -88,14 +101,12 @@ const styles = StyleSheet.create({
   result: {
     padding: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   symbol: {
     fontWeight: 'bold',
     fontSize: 16,
   },
   name: {
-    color: '#444',
     fontSize: 14,
   },
 });
