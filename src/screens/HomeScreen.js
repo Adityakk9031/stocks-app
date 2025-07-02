@@ -7,25 +7,22 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { colors } from '../constants/colors';
 
-const GainerCard = ({ stock, theme }) => (
-  <View style={[styles.card, { backgroundColor: colors[theme].success }]}>
+const StockCard = ({ stock, theme, isGainer }) => (
+  <View style={[styles.card, { backgroundColor: isGainer ? colors[theme].success : colors[theme].danger }]}>
     <Text style={[styles.symbol, { color: colors[theme].text }]}>{stock.symbol}</Text>
     <Text style={[styles.price, { color: colors[theme].text }]}>${stock.price}</Text>
-    <Text style={[styles.percent, { color: colors[theme].text }]}>+{stock.change}%</Text>
-  </View>
-);
-
-const LoserCard = ({ stock, theme }) => (
-  <View style={[styles.card, { backgroundColor: colors[theme].danger }]}>
-    <Text style={[styles.symbol, { color: colors[theme].text }]}>{stock.symbol}</Text>
-    <Text style={[styles.price, { color: colors[theme].text }]}>${stock.price}</Text>
-    <Text style={[styles.percent, { color: colors[theme].text }]}>-{Math.abs(stock.change)}%</Text>
+    <Text style={[styles.percent, { color: colors[theme].text }]}>
+      {isGainer ? '+' : '-'}
+      {Math.abs(stock.change)}%
+    </Text>
   </View>
 );
 
 export default function HomeScreen() {
   const [gainers, setGainers] = useState([]);
   const [losers, setLosers] = useState([]);
+  const [allGainers, setAllGainers] = useState([]);
+  const [allLosers, setAllLosers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const navigation = useNavigation();
@@ -35,9 +32,11 @@ export default function HomeScreen() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const { topGainers, topLosers } = await fetchTopMovers();
+        const { topGainers, topLosers, allGainers, allLosers } = await fetchTopMovers();
         setGainers(topGainers);
         setLosers(topLosers);
+        setAllGainers(allGainers);
+        setAllLosers(allLosers);
       } catch (err) {
         console.error('Error loading movers:', err.message);
       }
@@ -57,34 +56,47 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors[theme].background }]}>
-      <View style={styles.themeToggleRow}>
-        <Text style={[styles.header, { color: colors[theme].text }]}>Top Gainers</Text>
+      <View style={styles.toggleWrapper}>
+        <Text style={{ color: colors[theme].text, marginRight: 8 }}>Dark Mode</Text>
         <Switch value={theme === 'dark'} onValueChange={toggleTheme} />
+      </View>
+
+      <View style={styles.rowBetween}>
+        <Text style={[styles.header, { color: colors[theme].text }]}>Top Gainers</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('ViewAllScreen', { type: 'gainers', data: allGainers })}>
+          <Text style={[styles.viewAll, { color: colors[theme].primary }]}>View All</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
         data={gainers}
-        horizontal
+        numColumns={2}
         keyExtractor={(item) => item.symbol}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => navigation.navigate('ProductScreen', { symbol: item.symbol })}>
-            <GainerCard stock={item} theme={theme} />
+            <StockCard stock={item} theme={theme} isGainer />
           </TouchableOpacity>
         )}
-        showsHorizontalScrollIndicator={false}
+        scrollEnabled={false}
       />
 
-      <Text style={[styles.header, { color: colors[theme].text }]}>Top Losers</Text>
+      <View style={styles.rowBetween}>
+        <Text style={[styles.header, { color: colors[theme].text }]}>Top Losers</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('ViewAllScreen', { type: 'losers', data: allLosers })}>
+          <Text style={[styles.viewAll, { color: colors[theme].primary }]}>View All</Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
         data={losers}
-        horizontal
+        numColumns={2}
         keyExtractor={(item) => item.symbol}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => navigation.navigate('ProductScreen', { symbol: item.symbol })}>
-            <LoserCard stock={item} theme={theme} />
+            <StockCard stock={item} theme={theme} isGainer={false} />
           </TouchableOpacity>
         )}
-        showsHorizontalScrollIndicator={false}
+        scrollEnabled={false}
       />
     </View>
   );
@@ -99,23 +111,29 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 20,
     fontWeight: '700',
-    marginVertical: 8,
   },
-  themeToggleRow: {
+  viewAll: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 16,
   },
   card: {
-    width: 130,
-    marginRight: 12,
-    padding: 12,
+    flex: 1,
+    margin: 6,
+    padding: 16,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 2, height: 2 },
     shadowRadius: 6,
     elevation: 4,
+    minWidth: 150,
   },
   symbol: {
     fontSize: 18,
@@ -126,6 +144,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   percent: {
+    fontSize: 14,
     marginTop: 4,
     fontWeight: '600',
   },
@@ -133,5 +152,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  toggleWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 8,
   },
 });

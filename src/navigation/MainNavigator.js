@@ -2,7 +2,8 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabNavigator from './TabNavigator';
 import FolderDetailScreen from '../screens/FolderDetailScreen';
-import ProductScreen from '../screens/ProductScreen'; // ✅ Add this import
+import ProductScreen from '../screens/ProductScreen';
+import ViewAllScreen from '../screens/ViewAllScreen'; // ✅ Added
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,13 @@ export default function MainNavigator() {
         component={ProductScreen}
         options={({ route }) => ({
           title: route.params?.symbol || 'Stock Details',
+        })}
+      />
+      <Stack.Screen
+        name="ViewAllScreen"
+        component={ViewAllScreen}
+        options={({ route }) => ({
+          title: route.params?.type === 'gainers' ? 'All Gainers' : 'All Losers',
         })}
       />
     </Stack.Navigator>

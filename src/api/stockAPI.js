@@ -3,13 +3,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = 'https://www.alphavantage.co/query';
 const KEYS = {
-  DAILY: '18H1U1HDOG4U0M6D',
-  SEARCH: 'P7W85FBZC2321PBH',
-  OVERVIEW: '7NYYEC62AJFRX4D2',
-  INTRADAY: '4XMH1HNQUUUTEKOC',
+  DAILY: ' LI4GLJ27OXA86IIA',
+  SEARCH: '4NP64A36IH47DNSS',
+  OVERVIEW: 'A7KON2J9J17BDBRK',
+  INTRADAY: 'CTCC3YZQJQ6B2WOA',
 };
 
-// ✅ AsyncStorage-based caching with expiry
+// ✅ Generic fetch + cache with expiry
 const getWithCache = async (key, fetcher, expiryMs) => {
   const raw = await AsyncStorage.getItem(key);
   if (raw) {
@@ -31,6 +31,7 @@ const getWithCache = async (key, fetcher, expiryMs) => {
   return value;
 };
 
+// ✅ Wrapper for Alpha Vantage API call
 const fetchFromAlpha = async (params, key) => {
   try {
     const response = await axios.get(BASE_URL, {
@@ -43,52 +44,7 @@ const fetchFromAlpha = async (params, key) => {
   }
 };
 
-export const fetchTopMovers = async () => {
-  const symbols = ['AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN'];
-  const results = [];
-
-  for (let i = 0; i < symbols.length; i++) {
-    const symbol = symbols[i];
-    const res = await fetchFromAlpha({
-      function: 'TIME_SERIES_DAILY',
-      symbol,
-      outputsize: 'compact',
-    }, KEYS.DAILY);
-
-    const timeSeries = res?.['Time Series (Daily)'];
-    if (!timeSeries) continue;
-
-    const dates = Object.keys(timeSeries);
-    const latest = parseFloat(timeSeries[dates[0]]['4. close']);
-    const prev = parseFloat(timeSeries[dates[1]]['4. close']);
-    const change = ((latest - prev) / prev) * 100;
-
-    results.push({
-      symbol,
-      price: latest.toFixed(2),
-      change: change.toFixed(2),
-    });
-
-    if ((i + 1) % 5 === 0) {
-      await new Promise((r) => setTimeout(r, 65000));
-    }
-  }
-
-  return {
-    topGainers: [...results].sort((a, b) => b.change - a.change).slice(0, 4),
-    topLosers: [...results].sort((a, b) => a.change - b.change).slice(0, 4),
-  };
-};
-
-export const searchStocks = async (keyword) => {
-  const res = await fetchFromAlpha({
-    function: 'SYMBOL_SEARCH',
-    keywords: keyword,
-  }, KEYS.SEARCH);
-  return res?.bestMatches || [];
-};
-
-// ✅ Caching Overview for 24 hours
+// ✅ Cache Overview for 24h
 export const getCompanyOverview = async (symbol) =>
   await getWithCache(
     `overview-${symbol}`,
@@ -96,7 +52,7 @@ export const getCompanyOverview = async (symbol) =>
     24 * 60 * 60 * 1000
   );
 
-// ✅ Caching Intraday for 5 minutes
+// ✅ Cache Intraday for 5 min
 export const getStockIntraday = async (symbol, interval = '5min') =>
   await getWithCache(
     `intraday-${symbol}`,
@@ -119,9 +75,76 @@ export const getStockIntraday = async (symbol, interval = '5min') =>
     5 * 60 * 1000
   );
 
+// ✅ Search stocks by keyword
+export const searchStocks = async (keyword) => {
+  const res = await fetchFromAlpha({
+    function: 'SYMBOL_SEARCH',
+    keywords: keyword,
+  }, KEYS.SEARCH);
+  return res?.bestMatches || [];
+};
+
+// ✅ Get market status (if needed)
 export const getMarketStatus = async () => {
   const res = await fetchFromAlpha({
     function: 'MARKET_STATUS',
   }, KEYS.SEARCH);
   return res;
+};
+
+// ✅ Top movers with static meta info (supports Option 3)
+export const fetchTopMovers = async () => {
+  const symbols = [
+    'AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN',
+    'NVDA', 'META', 'NFLX', 'ORCL', 'INTC',
+    'ADBE', 'CRM', 'PEP', 'KO', 'WMT',
+    'NKE', 'PYPL', 'T', 'BABA', 'DIS'
+  ];
+
+  const results = [];
+
+  for (let i = 0; i < symbols.length; i++) {
+    const symbol = symbols[i];
+
+    // Price Change %
+    const res = await fetchFromAlpha({
+      function: 'TIME_SERIES_DAILY',
+      symbol,
+      outputsize: 'compact',
+    }, KEYS.DAILY);
+
+    const timeSeries = res?.['Time Series (Daily)'];
+    if (!timeSeries) continue;
+
+    const dates = Object.keys(timeSeries);
+    const latest = parseFloat(timeSeries[dates[0]]['4. close']);
+    const prev = parseFloat(timeSeries[dates[1]]['4. close']);
+    const change = ((latest - prev) / prev) * 100;
+
+    // ✅ Meta info
+    const overview = await getCompanyOverview(symbol);
+
+    results.push({
+      symbol,
+      price: latest.toFixed(2),
+      change: change.toFixed(2),
+      name: overview?.Name || '', // fallback empty
+      sector: overview?.Sector || '',
+    });
+
+    // ✅ Respect Alpha Vantage limit (5 calls/min)
+    if ((i + 1) % 5 === 0) {
+      await new Promise((r) => setTimeout(r, 65000));
+    }
+  }
+
+  const sortedGainers = [...results].sort((a, b) => b.change - a.change);
+  const sortedLosers = [...results].sort((a, b) => a.change - b.change);
+
+  return {
+    topGainers: sortedGainers.slice(0, 4),
+    topLosers: sortedLosers.slice(0, 4),
+    allGainers: sortedGainers,
+    allLosers: sortedLosers,
+  };
 };
