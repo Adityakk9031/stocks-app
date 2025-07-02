@@ -1,6 +1,6 @@
 <h1>📈 Stock Broking App - React Native </h1>
 
-<p>This is a stock market Android application built with <strong>React Native</strong> for the SDE Intern assignment. It allows users to explore top market gainers/losers, view detailed stock information with a price graph, and manage a personalized watchlist. It also features news sentiment analysis, light/dark theme toggle, and market status indicator.</p>
+<p>This is a stock market Android application built with <strong>React Native</strong> . It allows users to explore top market gainers/losers, view detailed stock information with a price graph, and manage a personalized watchlist. It also features news sentiment analysis, light/dark theme toggle, and market status indicator.</p>
 
 <hr>
 
