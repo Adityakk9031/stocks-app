@@ -1,4 +1,4 @@
-<h1>📈 Stock Broking App - React Native (SDE Intern Assignment)</h1>
+<h1>📈 Stock Broking App - React Native </h1>
 
 <p>This is a stock market Android application built with <strong>React Native</strong> for the SDE Intern assignment. It allows users to explore top market gainers/losers, view detailed stock information with a price graph, and manage a personalized watchlist. It also features news sentiment analysis, light/dark theme toggle, and market status indicator.</p>
 
@@ -108,7 +108,7 @@ yarn
 
 <h2>🚀 APK & Demo</h2>
 <ul>
-  <li>🔗 <a href="https://your-apk-link.com" target="_blank"><strong>APK Download (Drive link)</strong></a></li>
+  <li>🔗 <a href="https://expo.dev/accounts/aditya.temp.user/projects/stocks-app/builds/515b0182-f337-46d5-9b79-dee14fa7ed7a"><strong>APK Download</strong></a></li>
   <li>📸 Add screenshots or inline GIF/demo recording here</li>
 </ul>
 
