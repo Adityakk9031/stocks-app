@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabNavigator from './TabNavigator';
 import FolderDetailScreen from '../screens/FolderDetailScreen';
 import ProductScreen from '../screens/ProductScreen';
-import ViewAllScreen from '../screens/ViewAllScreen'; // ✅ Added
+import ViewAllScreen from '../screens/ViewAllScreen'; 
 
 const Stack = createNativeStackNavigator();
 
